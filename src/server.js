@@ -9,29 +9,26 @@ const app = express();
 const logger = pinoHttp();
 
 const PORT = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(express.json());
 app.use(logger);
-const notes = [
-  { id: '1', text: 'First note' },
-  { id: '2', text: 'Second note' },
-];
+
 app.get('/notes', (req, res) => {
   res.status(200).json({
     message: 'Retrieved all notes',
   });
 });
+
 app.get('/notes/:noteId', (req, res) => {
   const { noteId } = req.params;
-  const note = notes.find((item) => item.id === noteId);
 
-  if (!note) {
-    return res.status(404).json({ message: 'Note not found' });
-  }
-
-  res.status(200).json(note);
+  res.status(200).json({
+    message: `Retrieved note with ID: ${noteId}`,
+  });
 });
-app.get('/test-error', () => {
+
+app.get('/test-error', (req, res) => {
   throw new Error('Simulated server error');
 });
 
