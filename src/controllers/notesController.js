@@ -1,52 +1,55 @@
-import { Note } from '../models/note.js';
 import createHttpError from 'http-errors';
+import { Note } from '../models/note.js';
 
-export const getAllNotes = async (req, res) => {
+
+export async function getAllNotes(req, res) {
   const notes = await Note.find();
   res.status(200).json(notes);
-};
+}
 
-export const getNoteById = async (req, res, next) => {
+
+export async function getNoteById(req, res) {
   const { noteId } = req.params;
 
   const note = await Note.findById(noteId);
 
   if (!note) {
-    return next(createHttpError(404, 'Note not found'));
+    throw createHttpError(404, 'Note not found');
   }
 
   res.status(200).json(note);
-};
+}
 
-export const createNote = async (req, res) => {
-  const newNote = await Note.create(req.body);
 
-  res.status(201).json(newNote);
-};
+export async function createNote(req, res) {
+  const note = await Note.create(req.body);
+  res.status(201).json(note);
+}
 
-export const deleteNote = async (req, res, next) => {
+
+export async function updateNote(req, res) {
   const { noteId } = req.params;
 
-  const deleted = await Note.findByIdAndDelete(noteId);
-
-  if (!deleted) {
-    return next(createHttpError(404, 'Note not found'));
-  }
-
-  res.status(200).json(deleted);
-};
-
-export const updateNote = async (req, res, next) => {
-  const { noteId } = req.params;
-
-  const updated = await Note.findByIdAndUpdate(noteId, req.body, {
-    new: true,
-    runValidators: true,
+  const updatedNote = await Note.findByIdAndUpdate(noteId, req.body, {
+    returnDocument: 'after',
   });
 
-  if (!updated) {
-    return next(createHttpError(404, 'Note not found'));
+  if (!updatedNote) {
+    throw createHttpError(404, 'Note not found');
   }
 
-  res.status(200).json(updated);
-};
+  res.status(200).json(updatedNote);
+}
+
+
+export async function deleteNote(req, res) {
+  const { noteId } = req.params;
+
+  const deletedNote = await Note.findByIdAndDelete(noteId);
+
+  if (!deletedNote) {
+    throw createHttpError(404, 'Note not found');
+  }
+
+  res.status(200).json(deletedNote);
+}

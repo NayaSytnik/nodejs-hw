@@ -1,3 +1,5 @@
 import pinoHttp from 'pino-http';
 
-export const logger = pinoHttp();
+const logger = pinoHttp();
+
+export default logger;
