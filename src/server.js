@@ -26,6 +26,9 @@ app.use(cookieParser());
 app.use(authRouter);
 app.use(notesRouter);
 
+app.use('/notes', notesRouter);
+app.use('/auth', authRouter);
+
 app.use(errors());
 
 app.use(notFoundHandler);
