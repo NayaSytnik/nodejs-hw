@@ -49,17 +49,26 @@ export async function loginUser(req, res) {
 export async function refreshUserSession(req, res) {
   const { sessionId, refreshToken } = req.cookies;
 
-  const session = await Session.findOne({ _id: sessionId, refreshToken });
+  const session = await Session.findOne({
+    _id: sessionId,
+    refreshToken,
+  });
 
   if (!session) {
     throw createHttpError(401, 'Session not found');
   }
 
   if (session.refreshTokenValidUntil < new Date()) {
+    await Session.findByIdAndDelete(session._id);
+
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    res.clearCookie('sessionId');
+
     throw createHttpError(401, 'Session token expired');
   }
 
-  await Session.deleteOne({ _id: sessionId });
+  await Session.findByIdAndDelete(session._id);
 
   const newSession = await createSession(session.userId);
   setSessionCookies(res, newSession);
@@ -71,12 +80,12 @@ export async function logoutUser(req, res) {
   const { sessionId } = req.cookies;
 
   if (sessionId) {
-    await Session.deleteOne({ _id: sessionId });
+    await Session.findByIdAndDelete(sessionId);
   }
 
   res.clearCookie('accessToken');
   res.clearCookie('refreshToken');
   res.clearCookie('sessionId');
 
-  res.status(204).send();
+  return res.status(204).send();
 }
