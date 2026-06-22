@@ -95,62 +95,6 @@ export async function logoutUser(req, res) {
   return res.status(204).send();
 }
 
-export async function requestResetEmail(req, res) {
-  const { email } = req.body;
-
-  const user = await User.findOne({ email });
-
-  if (!user) {
-    return res.status(200).json({
-      message: 'Password reset email sent successfully',
-    });
-  }
-
-  const token = jwt.sign(
-    {
-      sub: user._id,
-      email: user.email,
-    },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: '15m',
-    },
-  );
-
-  const templatePath = path.resolve(
-    'src',
-    'templates',
-    'reset-password-email.html',
-  );
-
-  const source = await fs.readFile(templatePath, 'utf-8');
-
-  const template = handlebars.compile(source);
-
-  const html = template({
-    name: user.username,
-    link: `${process.env.FRONTEND_DOMAIN}/reset-password?token=${token}`,
-  });
-
-  try {
-    await sendEmail({
-      from: process.env.SMTP_FROM,
-      to: user.email,
-      subject: 'Password reset',
-      html,
-    });
-  } catch {
-    throw createHttpError(
-      500,
-      'Failed to send the email, please try again later.',
-    );
-  }
-
-  res.status(200).json({
-    message: 'Password reset email sent successfully',
-  });
-}
-
 export async function resetPassword(req, res) {
   const { token, password } = req.body;
 
@@ -179,5 +123,61 @@ export async function resetPassword(req, res) {
 
   res.status(200).json({
     message: 'Password reset successfully',
+  });
+}
+
+export async function requestResetEmail(req, res) {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(200).json({
+      message: 'Password reset email sent successfully',
+    });
+  }
+
+  const token = jwt.sign(
+    {
+      sub: user._id,
+      email: user.email,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: '15m',
+    },
+  );
+
+  const resetLink = `${process.env.FRONTEND_DOMAIN}/reset-password?token=${token}`;
+
+  const templatePath = path.resolve(
+    'src',
+    'templates',
+    'reset-password-email.html',
+  );
+
+  const source = await fs.readFile(templatePath, 'utf-8');
+  const template = handlebars.compile(source);
+  const html = template({
+    name: user.username || user.email,
+    link: resetLink,
+  });
+
+  try {
+    await sendEmail({
+      from: process.env.SMTP_FROM,
+      to: user.email,
+      subject: 'Password reset',
+      html,
+    });
+  } catch {
+    throw createHttpError(
+      500,
+      'Failed to send the email, please try again later.',
+    );
+  }
+
+  res.status(200).json({
+    message: 'Password reset email sent successfully',
   });
 }
