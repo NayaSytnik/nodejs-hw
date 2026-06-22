@@ -5,8 +5,6 @@ import cookieParser from 'cookie-parser';
 import { errors } from 'celebrate';
 import userRoutes from './routes/userRoutes.js';
 
-
-import userRouter from './routes/userRoutes.js';
 import { connectMongoDB } from './db/connectMongoDB.js';
 
 import notesRouter from './routes/notesRoutes.js';
@@ -32,9 +30,9 @@ app.get('/', (req, res) => {
 app.use(userRoutes);
 app.use(authRouter);
 app.use(notesRouter);
-app.use(userRouter);
-app.use(errors());
+
 app.use(notFoundHandler);
+app.use(errors());
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
